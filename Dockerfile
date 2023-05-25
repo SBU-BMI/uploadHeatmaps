@@ -1,29 +1,21 @@
-FROM ubuntu:bionic
-LABEL maintainer="joseph.balsamo@stonybrook.edu"
-#
-# QuIP - Heatmap Loader Docker Container
-#
-### update OS
-RUN echo "Start update"
-RUN \
-  sed -i 's/# \(.*multiverse$\)/\1/g' /etc/apt/sources.list && \
-  apt-get update && \
-  apt-get -y upgrade
+FROM mongo:4.2-bionic
+RUN mv /etc/apt/sources.list.d/mongodb-org.list /tmp/mongodb-org.list && \
+    apt-get update && \
+    apt-get install -y curl && \
+    curl -o /etc/apt/keyrings/mongodb.gpg https://pgp.mongodb.com/server-4.2.pub && \
+    mv /tmp/mongodb-org.list /etc/apt/sources.list.d/mongodb-org.list;
+RUN apt-get update
+RUN apt-get -y upgrade
+RUN apt-get install -y wget git vim build-essential checkinstall
+RUN apt-get install -y libreadline-gplv2-dev libncursesw5-dev libssl-dev \
+    libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
+RUN cd /usr/src && wget https://www.python.org/ftp/python/3.9.9/Python-3.9.9.tgz && tar xzf Python-3.9.9.tgz && cd Python-3.9.9 && ./configure --enable-optimizations && make altinstall
 RUN \
   apt-get install -y libcurl4 openssl && \
   apt-get install -y build-essential && \
   apt-get install -y software-properties-common && \
   apt-get install -y byobu curl git htop man unzip vim wget gnupg
-
-RUN echo "Install Mongo and Node"
-
-RUN echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-4.0.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 68818C72E52529D4
-
-RUN apt-get update
-RUN apt-get -y upgrade
-
-RUN apt-get install -y mongodb nodejs
+RUN apt-get install -y nodejs
 
 RUN \
   rm -rf /var/lib/apt/lists/* && \
